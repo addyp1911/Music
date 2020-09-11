@@ -296,12 +296,6 @@ class AutoSuggest(generics.ListAPIView):
                 return Response(responsedata(False, "You are not authorized"), status=status.HTTP_401_UNAUTHORIZED)
 
             queryset = PlayList.objects.filter(user=request.user)
-            pagenumber = request.GET.get('page', 1)
-            paginator = Paginator(queryset, 10)
-
-            user_data = UserShowSerializer(request.user).data
-
-            playlist_qs = paginator.page(pagenumber).object_list            
             
             genres = list(queryset.values_list("tracks__genres", flat=True))
             artists = list(queryset.values_list("tracks__artists", flat=True))
@@ -325,7 +319,8 @@ class AutoSuggest(generics.ListAPIView):
                                     "based_on_artist": similar_artist_songs})
 
             # Paginated response
-            return JsonResponse(paginate(response, paginator, pagenumber), safe=False)
+            return JsonResponse(responsedata(True, "Auto suggested songs list", response), \
+                                    status=status.HTTP_202_ACCEPTED)
 
         except Exception:
             return Response(responsedata(False, GENERIC_ERR),status=status.HTTP_400_BAD_REQUEST)
